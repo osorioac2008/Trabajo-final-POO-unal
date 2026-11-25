@@ -1,0 +1,266 @@
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import filedialog
+from tkinter import ttk
+
+#-------------------------------------------------------------------------------
+#   LISTA DE EMPLEADOS
+#-------------------------------------------------------------------------------
+
+empleados = []
+total = 0  
+
+# ==============================================================================
+# 1. VENTANA INICIAL
+# ==============================================================================
+
+def Ven_inicial():
+    
+    global ventana
+    # Inicio ventana
+    ventana = tk.Tk()
+    ventana.title("INTERFAZ DE NOMINA EMPRESARIAL")
+    ventana.configure(bg = "gray10")
+    ventana.resizable(False, False)
+    
+    #Diseño TTk
+    estilo = ttk.Style()
+    estilo.theme_use("clam")
+    estilo.configure("Treeview", background = "gray10", foreground = "spring green", fieldbackground = "gray10", font = ("Arial", 10))
+    estilo.configure("Treeview.Heading", background="spring green", foreground="gray10", font = ("Arial", 12))
+        
+    #Titulo
+    tk.Label(ventana, text = "PROGRAMA DE NOMINA SALARIAL", font = ("Arial", 20), bg = "gray10", fg = "spring green").pack(fill="x", pady = 20, padx = 10)
+    
+    #Subtitulo
+    tk.Label(ventana, text = "BIENVENIDO\nLe presentamos la barra de opciones", font = ("Arial", 13), bg = "gray10", fg = "spring green").pack(fill="x", pady = 20)
+    
+    #Frame barra opciones
+    frame = tk.Frame(ventana, width = 1, bg = "gray10")
+    frame.pack(fill = "x")
+    frame.grid_columnconfigure((0, 1, 2), weight = 1)
+    
+    #Barra opciones
+    #agregar usuario
+    tk.Label(frame, text = "Ingreso de usuario", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 0, column = 0, padx = 10)
+    tk.Button(frame, text = ">>> Click aqui <<<", command = Agregar_empleado, bg = "spring green", fg = "gray10").grid(row = 1, column = 0, pady = 10, padx = 10)
+    
+    #Calcular nomina
+    tk.Label(frame, text = "Calculo de nomina", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 0, column = 1, padx = 10)
+    tk.Button(frame, text = ">>> Click aqui <<<", command = Calcular_nomina, bg = "spring green", fg = "gray10").grid(row = 1, column = 1, pady = 10, padx = 10)
+    
+    #Guardar archivo
+    tk.Label(frame, text = "Guardar archivo", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 0, column = 2, padx = 10)
+    tk.Button(frame, text = ">>> Click aqui <<<", command = Archivo, bg = "spring green", fg = "gray10").grid(row = 1, column = 2, pady = 10, padx = 10)
+    
+    #Ejecucion
+    ventana.mainloop()
+
+# ==============================================================================
+# 2. SUBVENTANAS    
+# ============================================================================== 
+
+#-------------------------------------------------------------------------------
+# 2.1 SUBVENTANA N.1 (AGREGAR EMPLEADOS)
+#-------------------------------------------------------------------------------
+
+def Agregar_empleado():
+    
+    # Funcion
+    def crear_empleado():
+        
+        try:
+            #Verificacion vacios
+            Var = [var_nom, var_ape, var_genero, var_Sal, var_ing, var_sal, var_pen]
+            if not all(var.get().strip() for var in Var):
+                raise ValueError("Faltan campos vacios")
+
+            #Crear empleado
+            persona = {
+                "Nombre" : var_nom.get(),
+                "Apellido" : var_ape.get(),
+                "Cargo" : var_cargo.get(),
+                "Genero" : var_genero.get(),
+                "Salario" : float(var_Sal.get()),
+                "Dias" : float(var_dias.get()),
+                "Otros ingresos" : float(var_ing.get()),
+                "Salud" : float(var_sal.get()),
+                "Pension" : float(var_pen.get())
+            }
+             
+        except ValueError as x:
+            messagebox.showwarning("ADVERTENCIA", x) 
+            return
+    
+        empleados.append(persona)  
+        messagebox.showinfo("FELICITACIONES", "Usuario creado con exito en la base de datos")
+        Subventana_1.destroy()
+            
+    #Inicio ventana
+    Subventana_1 = tk.Toplevel(ventana)
+    Subventana_1.title("AGREGAR EMPLEADOS")
+    Subventana_1.grab_set()
+    Subventana_1.transient(ventana)
+    Subventana_1.configure(bg = "gray10")
+    Subventana_1.resizable(False, False)
+    
+    #Titulo
+    tk.Label(Subventana_1, text = "INGRESO EMPLEADOS", font = ("Arial", 16), bg = "gray10", fg = "spring green").pack(fill="x", pady = 20, padx = 10)
+    
+    #Subtitulo
+    tk.Label(Subventana_1, text = "Bienvenido\nPor favor, complete los campos", font = ("Arial", 13), bg = "gray10", fg = "spring green").pack(fill="x", pady = 20, padx = 10)
+    
+    #frame empleado
+    frame = tk.Frame(Subventana_1, width = 1, bg = "gray10")
+    frame.pack(fill = "x")
+    frame.grid_columnconfigure((0, 1), weight = 1)
+    
+    #Nombre
+    tk.Label(frame, text = "Nombre --> ", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 0, column = 0, padx = 20, sticky = "w")
+    var_nom = tk.Entry(frame, bg = "spring green", fg = "gray10")
+    var_nom.grid(row = 0, column = 1, padx = 20, sticky = "w", pady = 5)
+    
+    #Apellido
+    tk.Label(frame, text = "Apellido --> ", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 1, column = 0, padx = 20, sticky = "w")
+    var_ape = tk.Entry(frame, bg = "spring green", fg = "gray10")
+    var_ape.grid(row = 1, column = 1, padx = 20, sticky = "w", pady = 5)
+    
+    #Cargo
+    tk.Label(frame, text = "Cargo --> ", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 2, column = 0, padx = 20, sticky = "w")
+    var_cargo = tk.StringVar(frame, value = "Estrategico")
+    cargo = tk.OptionMenu(frame, var_cargo, "Estrategico", "Operativo", "Directivo")
+    cargo.grid(row = 2, column = 1, padx = 20, pady = 5)
+    cargo.config(bg = "spring green", fg = "gray10", width = 15, highlightthickness = 0, bd = 0)
+    cargo["menu"].config(bg = "spring green")  
+    
+    #Genero
+    tk.Label(frame, text = "Genero --> ", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 3, column = 0, padx = 20, sticky = "w")
+    frame_genero = tk.Frame(frame, width = 1)
+    frame_genero.grid(row = 3, column = 1)
+    var_genero = tk.StringVar(value = "Hombre")
+    hombre = tk.Radiobutton(frame_genero, text = "Hombre", variable = var_genero, value = "Hombre", bg = "gray10", fg = "spring green", selectcolor = "gray10" )
+    hombre.grid(row = 0, column = 0)
+    mujer = tk.Radiobutton(frame_genero, text = "Mujer", variable = var_genero, value = "Mujer", bg = "gray10", fg = "spring green", selectcolor = "gray10" )
+    mujer.grid(row = 0, column = 1)
+    
+    #Salario
+    tk.Label(frame, text = "Salario --> ", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 4, column = 0, padx = 20, sticky = "w")
+    var_Sal = tk.Entry(frame, bg = "spring green", fg = "gray10")
+    var_Sal.grid(row = 4, column = 1, pady = 5)
+    
+    #Dias
+    tk.Label(frame, text = "Dias labor --> ", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 5, column = 0, padx = 20, sticky = "w")
+    var_dias = tk.Spinbox(frame, from_ = 1, to = 31, state = "readonly", width = 18, readonlybackground = "spring green", fg = "gray10", justify = "center", buttonbackground = "spring green")
+    var_dias.grid(row = 5, column = 1, pady = 5)
+    
+    #Otros Ing
+    tk.Label(frame, text = "Otros ing --> ", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 6, column = 0, padx = 20, sticky = "w")
+    var_ing = tk.Entry(frame, bg = "spring green", fg = "gray10")
+    var_ing.grid(row = 6, column = 1, pady = 5)
+    
+    #Salud
+    tk.Label(frame, text = "Pag Salud --> ", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 7, column = 0, padx = 20, sticky = "w")
+    var_sal = tk.Entry(frame, bg = "spring green", fg = "gray10")
+    var_sal.grid(row = 7, column = 1, pady = 5)
+    
+    #Pension
+    tk.Label(frame, text = "Apo Pension --> ", font = ("Arial", 10), bg = "gray10", fg = "spring green").grid(row = 8, column = 0, padx = 20, sticky = "w")
+    var_pen = tk.Entry(frame, bg = "spring green", fg = "gray10")
+    var_pen.grid(row = 8, column = 1, pady = 5)
+
+    #Boton
+    tk.Button(frame, text = "Ingresar empleado", command = crear_empleado, bg = "spring green", fg = "gray10").grid(row = 9, column = 0, columnspan = 2, pady = 10)
+        
+#-------------------------------------------------------------------------------
+# 2.2 SUBVENTANA N.2 (GENERAR NOMINA)
+#-------------------------------------------------------------------------------
+
+def Calcular_nomina():
+    
+    #Nomina
+    def Nomina(empleado):
+        nomina = (empleado["Dias"] * empleado["Salario"]) + empleado["Otros ingresos"] - empleado["Salud"] - empleado["Pension"]
+        empleado["Mensual"] = nomina
+        return round(nomina, 0) 
+  
+    def empresa():
+        
+        global total
+        
+        #Total        
+        total = sum(i["Mensual"] for i in empleados)
+        Nomina_total.configure(text = f"Nomina de la empresa: >>> {int(total)} <<<") 
+         
+          
+    #Inicio ventana
+    Subventana_2 = tk.Toplevel(ventana)
+    Subventana_2.title("CALCULOS DE NOMINAS")
+    Subventana_2.grab_set()
+    Subventana_2.transient(ventana)
+    Subventana_2.configure(bg = "gray10")
+    Subventana_2.resizable(False, False)
+    
+    #Titulo
+    tk.Label(Subventana_2, text = "TABLA DE EMPLEADOS", font = ("Arial", 20), bg = "gray10", fg = "spring green").pack(pady = 10)
+    
+    #Crear tabla
+    columnas = ("Nombre", "Apellido", "Salario Mensual")
+    tabla = ttk.Treeview(Subventana_2, columns = columnas, height = 3, show = "headings")
+    tabla.pack()
+    for i in columnas:
+        tabla.heading(i, text = i)
+        tabla.column(i, width = 200, anchor = "center")
+    
+    for i in empleados:
+        tabla.insert("", tk.END, value = (
+            i["Nombre"],
+            i["Apellido"],
+            int(Nomina(i))
+        ))
+        
+    #Nomnia completa
+    tk.Label(Subventana_2, text = "CALCULO TOTAL DE NOMINA DE EMPRESA", font = ("Arial", 15), bg = "gray10", fg = "spring green").pack(pady = 20)
+    Nomina_total = tk.Label(Subventana_2, text = "Nomina de la empresa: >>>  <<<", bg = "gray10", fg = "spring green", font = ("Arial", 12))
+    Nomina_total.pack(pady = 10)
+    tk.Button(Subventana_2, text = "Calular la nomina empresarial", command = empresa, bg = "spring green", fg = "gray10", font = ("Times New Roman", 12, "bold")).pack(pady = 20)
+    
+#-------------------------------------------------------------------------------
+# 2.3 SUBVENTANA N.3 (GUARDAR ARCHIVO)
+#-------------------------------------------------------------------------------
+
+def Archivo():
+              
+    #Crear archivo
+    ruta = filedialog.askdirectory(title = "Eleccion de carpeta")
+    if ruta:
+        
+        #Lista
+        lista = ["Nombre", "Apellido", "Cargo", "Genero", "Salario", "Dias", "Otros ingresos", "Salud", "Pension", "Mensual"]
+        
+        #Ingresar datos
+        archivo = open(ruta + "/Nomina.txt", "w")
+        for titulo in lista:
+            archivo.write(f"{titulo:<16}")
+        archivo.write("\n")
+        for empleado in empleados:
+            for valor in lista:
+                if "Mensual" not in empleado:
+                    empleado["Mensual"] = (empleado["Dias"] * empleado["Salario"]) + empleado["Otros ingresos"] - empleado["Salud"] - empleado["Pension"]
+                archivo.write(f"{empleado[valor]:<16}")
+            archivo.write("\n")
+
+        archivo.write("Nomina total de la empresa --->" + "\t" + str(total))
+        
+        messagebox.showinfo("FELICIDADES", "Se a guardado el archivo")
+        
+        #Guardar archivo        
+        archivo.close()
+               
+# ==============================================================================
+# 3. INICIO PROGRAMA
+# ============================================================================== 
+
+Ven_inicial()
+
+
+
