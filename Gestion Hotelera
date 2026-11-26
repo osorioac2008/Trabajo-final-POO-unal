@@ -1,0 +1,397 @@
+import tkinter as tk
+from tkinter import messagebox, ttk
+import time, datetime
+from tkcalendar import DateEntry
+
+#-------------------------------------------------------------------------------
+#   LISTADO DE HUESPEDES
+#-------------------------------------------------------------------------------
+
+huespedes = []
+
+#-------------------------------------------------------------------------------
+#   HABITACIONES
+#-------------------------------------------------------------------------------
+
+def Habitaciones():
+    
+    global Habs_120, Habs_160
+    
+    Habs_120 =  {
+        "A" : "Disponible",
+        "B" : "Disponible",
+        "C" : "Disponible",
+        "D" : "Disponible",
+        "E" : "Disponible"
+    }
+    
+    Habs_160 =  {
+        "F" : "Disponible",
+        "G" : "Disponible",
+        "H" : "Disponible",
+        "I" : "Disponible",
+        "J" : "Disponible"
+        }
+
+    return Habs_120, Habs_160
+
+#-------------------------------------------------------------------------------
+#   OPCIONES DE VENTANAS
+#-------------------------------------------------------------------------------
+
+def opcion():
+
+    try:
+        if Menu.get() == "ELIJA UNA OPCION": raise ValueError("Debe seleccionar una opcion")
+        if Menu.get() == "CONSULTA DE HABITACIONES": Consulta_Hab()
+        if Menu.get() == "SALIDA DE CLIENTES" : Salida_Hues()
+    except ValueError as x:
+        messagebox.showerror("ERROR DETECTADO", x)
+        return
+    
+# ==============================================================================
+# 1. VENTANA INICIAL
+# ==============================================================================
+
+def Ventana_Inicial():
+    
+    global ventana, Menu
+    Habitaciones()
+       
+    #Inicio Ventana
+    ventana = tk.Tk()
+    ventana.title("GESTION HOTELERA")
+    ventana.configure(bg = "gray20")
+    ventana.resizable(False, False)
+    
+    #Colores ttk
+    estilo = ttk.Style()
+    estilo.theme_use("clam")
+    estilo.configure("TCombobox", borderwidth = 0, bordercolor="gray20", lightcolor="gray20", darkcolor="gray20")
+    estilo.map("TCombobox", background = [("readonly", "yellow2")], foreground = [("readonly", "gray20")], fieldbackground = [("readonly", "yellow2")])
+    opciones_lista = {"background": "yellow2", "foreground": "gray20", "selectBackground": "gold", "selectForeground": "black", "font": ("Comic Sans MS", 12)}
+    for prop, val in opciones_lista.items(): ventana.option_add(f"*TCombobox*Listbox.{prop}", val)
+    
+    estilo.configure("Treeview", background = "yellow2", foreground = "gray20", fieldbackground = "yellow3", font = ("Comic Sans MS", 10, "bold"))
+    estilo.configure("Treeview.Heading", background= "yellow2", foreground="gray20", font = ("Comic Sans MS", 10, "bold"))
+    
+    estilo.configure("DateEntry", background = "yellow2", foreground = "gray20", fieldbackground = "yellow2")
+    
+    #Titulo
+    tk.Label(ventana, text = "GESTION VIRTUAL DEL HOTEL DECAMERON", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 20)).pack(pady = 20, padx = 10)
+    
+    #Subtitulo
+    tk.Label(ventana, text = "¡¡¡BIENVENIDO!!!\nSea bienvenido al sitio virtual del hotel Decameron.\n\nA su disposcicion el menu de habitaciones:", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 16)).pack(pady = 20, padx = 10)
+        
+    #Consultar habitacion
+    Menu = ttk.Combobox(ventana, width = 30, state = "readonly", values = ["CONSULTA DE HABITACIONES", "SALIDA DE CLIENTES"], font = ("Comic Sans MS", 10, "bold"))
+    Menu.pack(pady = 10)
+    Menu.set("ELIJA UNA OPCION")
+    Menu.bind("<<ComboboxSelected>>", lambda e: Menu.selection_clear())
+    
+    tk.Button(ventana, text = ">>> ACCESO <<<",command = opcion, font = ("Comic Sans MS", 10, "bold"), bg = "yellow2", fg = "gray20").pack(pady = 10)
+    
+    #Lanzar ventana
+    ventana.mainloop()
+
+# ==============================================================================
+# 2. SUBVENTANAS    
+# ============================================================================== 
+
+#-------------------------------------------------------------------------------
+# 2.1 SUBVENTANA N.1 (CONSULTAR HABITACIONES)
+#-------------------------------------------------------------------------------
+
+def Consulta_Hab():
+    
+    global Subventana, listado
+    
+    #Funcion datos
+    def ocupar_hab():
+        
+        try:
+            eleccion = listado.focus()
+            if eleccion == "":
+                raise ValueError("Debe seleccionar una habitacion")
+            datos = listado.item(eleccion)["values"]
+            if datos[1] == "Ocupado":
+                raise ValueError("La habitacion esta ocupada")
+            Ingreso_huesped()
+            
+        except ValueError as x:
+            messagebox.showwarning("ADVERTENCIA", x)
+            return   
+    
+    #Iniciador ventana
+    Subventana = tk.Toplevel(ventana)
+    Subventana.title("CONSULTORIO DE HABITACIONES")
+    Subventana.grab_set()
+    Subventana.transient(ventana)
+    Subventana.configure(bg = "gray20")
+    
+    #Titulo
+    tk.Label(Subventana, text = "ANALISIS DE HABITACIONES", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 20)).pack(pady = 20, padx = 10)
+    
+    #Subtitulo
+    tk.Label(Subventana, text = "A continuacion presentamos las habitaciones, su estado y valor:", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 16)).pack(pady = 10, padx = 10)
+    
+    #Frame
+    frame = tk.Frame(Subventana, width = 1)
+    frame.pack(fill = "x", pady = 10, padx = 10)
+    frame.configure(bg = "gray20")
+    
+    #habitaciones
+    
+    Hab = ("Habitacion", "Disponibilidad", "Valor")
+    
+    listado = ttk.Treeview(Subventana, columns = Hab, height = 10, show = "headings")
+    listado.pack(fill = "x", pady = 10, padx = 20)
+    
+    for i in Hab:
+        listado.heading(i, text = i)
+        listado.column(i, width = 200, anchor = "center")
+    
+    for hab, disp in Habs_120.items():
+        listado.insert("", tk.END, value = (
+            hab,
+            disp,
+            120000
+        ))
+    
+    for hab, disp in Habs_160.items():
+        listado.insert("", tk.END, value = (
+            hab,
+            disp,
+            160000
+        ))
+       
+    tk.Button(Subventana, text = "Elejir habitacion", command = ocupar_hab, bg = "yellow2", fg = "gray20", font = ("Comic Sans MS", 10, "bold")).pack(pady = 10)
+
+#-------------------------------------------------------------------------------
+# 2.2 SUBVENTANA N.2 (SALIDA HUESPEDES)
+#-------------------------------------------------------------------------------  
+
+def Salida_Hues():
+    
+    global Subventana_2, hab
+    
+    def Retirar_hab():   
+                
+        try:
+            if hab.get() == "":
+                raise ValueError("Campo Vacio")
+            if hab.get().upper() not in Habs_120 and hab.get().upper() not in Habs_160:
+                raise ValueError("Caracter erroneo de reconocimiento de habitacion")
+            if Habs_120.get(hab.get().upper()) == "Disponible":
+                raise ValueError("La habitacion esta disponible, No es tu habitacion")
+            if Habs_160.get(hab.get().upper()) == "Disponible":
+                raise ValueError("La habitacion esta disponible, No es tu habitacion")
+            
+            Registrar_salida(hab.get().upper())
+        
+        except ValueError as x:
+            messagebox.showerror("FALLO DE INGRESO", x)       
+            return
+    
+    #Iniciador ventana
+    Subventana_2 = tk.Toplevel(ventana)
+    Subventana_2.title("SALIDA DE HUESPEDES")
+    Subventana_2.grab_set()
+    Subventana_2.transient(ventana)
+    Subventana_2.configure(bg = "gray20")
+    
+    #Titulo
+    tk.Label(Subventana_2, text = "REGISTRO DE SALIDA DE HUESPEDES", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 16)).pack(pady = 20, padx = 10)
+    
+    #Subtitulo
+    tk.Label(Subventana_2, text = "Lamentamos que tenga que despedirse del hotel", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 16)).pack(pady = 20, padx = 10)
+    
+    #habitacion
+    tk.Label(Subventana_2, text = "Ingrese porfavor su habitacion", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 12)).pack(pady = 20, padx = 10)
+    hab = tk.Entry(Subventana_2, bg = "yellow2", fg = "gray20", justify = "center")
+    hab.pack(pady = 10)
+    tk.Button(Subventana_2, text = ">>> Continuar <<<", command = Retirar_hab, bg = "yellow2", fg = "gray20", font = ("Comic Sans MS", 10, "bold")).pack(pady = 15)
+
+# ==============================================================================
+# 3. SUBSUBVENTANAS    
+# ============================================================================== 
+   
+#-------------------------------------------------------------------------------
+# 3.1 SUBSUBVENTANA N.1 (INGRESO HUESPED)
+#-------------------------------------------------------------------------------  
+
+def Ingreso_huesped():
+    
+    def crear():
+        
+        try:
+            valores = [Nom.get(), Ape.get(), Doc.get()]
+            if not all(i for i in valores):
+                raise ValueError("Campos Incompletos")
+            
+            datos = listado.item(listado.focus())["values"]
+            
+            persona = {
+                "Nombre" : Nom.get(),
+                "Apellido" : Ape.get(),
+                "Documento" : int(Doc.get()),
+                "fecha_ingreso" : fecha.get_date(),
+                "Habitacion" : datos[0]
+            }
+            
+            huespedes.append(persona)
+            
+            eleccion = listado.focus()
+            datos = listado.item(eleccion)["values"]
+            datos[1] = "Ocupado"
+            listado.item(eleccion, value = datos)
+            
+            if datos[0] in Habs_120:
+                Habs_120[datos[0]] = "Ocupado"
+            elif datos[0] in Habs_160:
+                Habs_160[datos[0]] = "Ocupado"
+        
+        except ValueError as x:
+            messagebox.showerror("FALLO AL REGISTRARSE", x)
+            return
+        
+        messagebox.showinfo("FELICIDADES", "Alojamiento Reservado con exito")
+        subsubventana.destroy()
+        Subventana.destroy()
+        
+    #Inicio ventana
+    subsubventana = tk.Toplevel(Subventana)
+    subsubventana.title("INGRESO DE USUARIOS")
+    subsubventana.grab_set()
+    subsubventana.transient(Subventana)
+    subsubventana.configure(bg = "gray20")
+    
+    #Titulo
+    tk.Label(subsubventana, text = "INGRESO DE HUESPEDES", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 20)).pack(pady = 10, padx = 10)
+    
+    #Subtitulo
+    tk.Label(subsubventana, text = "Ingrese los datos del encargado de la habitacion", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 15)).pack(pady = 10, padx = 10)
+    
+    #Frame datos
+    frame = tk.Frame(subsubventana, width = 1, bg = "gray20")
+    frame.pack(fill = "x")
+    frame.columnconfigure((0, 1), uniform = "center", weight = 1)
+    
+    #Nombre
+    tk.Label(frame, text = "Nombre ---> ", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 12)).grid(row = 0, column = 0, pady = 10, padx = 10)
+    Nom = tk.Entry(frame, bg = "yellow2", fg = "gray20")
+    Nom.grid(row = 0, column = 1)
+    
+    #Apellido
+    tk.Label(frame, text = "Apellido --->", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 12)).grid(row = 1, column = 0, pady = 10, padx = 10)
+    Ape = tk.Entry(frame, bg = "yellow2", fg = "gray20")
+    Ape.grid(row = 1, column = 1)
+    
+    #Documento
+    tk.Label(frame, text = "Documento ID --->", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 12)).grid(row = 2, column = 0, pady = 10, padx = 10)
+    Doc = tk.Entry(frame, bg = "yellow2", fg = "gray20")
+    Doc.grid(row = 2, column = 1)
+    
+    #Fecha
+    tk.Label(frame, text = "Fecha ---> ", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 12)).grid(row = 3, column = 0, pady = 10, padx = 10)
+    
+    frame_tiempo = tk.Frame(frame)
+    frame_tiempo.grid(row = 3, column = 1)
+    
+    fecha = DateEntry(frame_tiempo, state = "readonly", justify = "center", width = 13, background = "yellow2", foreground = "gray20", font = ("Comic Sans MS", 10, "bold"))
+    fecha.pack()
+        
+    tk.Button(subsubventana, text = "Ingresar datos...", command = crear, bg = "yellow2", fg = "gray20", font = ("Comic Sans MS", 10, "bold")).pack(pady = 10)
+    
+#-------------------------------------------------------------------------------
+# 3.2 SUBSUBVENTANA N.2 (RETIRO HUESPED)
+#------------------------------------------------------------------------------- 
+
+def Registrar_salida(Habitacion):
+   
+    def segundo_punto():
+        
+        def Datos():
+            
+            def end():
+                if Habitacion in Habs_120:
+                    Habs_120[Habitacion] = "Disponible"
+                elif Habitacion in Habs_160:
+                    Habs_160[Habitacion] = "Disponible"
+                
+                messagebox.showinfo("PROCESO TERMINADO", "Gracias por elejirnos, Buen dia")
+                subsubventana.destroy()
+                Subventana_2.destroy()
+            
+            dias_ocupacion = (fecha_salida.get_date() - fecha_ing).days
+            dias.configure(text = f"{dias_ocupacion} dias de uso")
+                  
+            if Habitacion in Habs_120:
+                sueldo_total = dias_ocupacion * 120000
+                pago.configure(text = f"{sueldo_total} $$$")
+            if Habitacion in Habs_160:
+                sueldo_total = dias_ocupacion * 160000
+                pago.configure(text = f"{sueldo_total} $$$")        
+            
+            tk.Button(subsubventana, text = "Registrar salida", command = end, bg = "yellow2", fg = "gray20", font = ("Comic Sans MS", 10, "bold")).pack(pady = 10)
+            
+            
+        for p in huespedes:
+            if p["Habitacion"] == Habitacion:
+                persona = p
+        
+        fecha_ing = persona["fecha_ingreso"]
+        
+        try:
+            if fecha_salida.get_date() <= fecha_ing:
+                raise ValueError("La fecha de salida es menor o igual a la de ingreso")
+        
+            frame = tk.Frame(subsubventana, bg = "gray20")
+            frame.pack(fill = "x")
+            frame.columnconfigure((0, 1), weight = 1)
+            
+            tk.Label(frame, text = "Dias ocupados ---> ", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 12)).grid(row = 0, column = 0, pady = 10, padx = 10)
+            dias = tk.Label(frame, text = "X dias de uso", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 12))
+            dias.grid(row = 0, column = 1, pady = 10, padx = 10)
+            
+            tk.Label(frame, text = "Pago total ---> ", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 12)).grid(row = 1, column = 0, pady = 10, padx = 10)
+            pago = tk.Label(frame, text = "??? $$$", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 12))
+            pago.grid(row = 1, column = 1, pady = 10, padx = 10)
+            
+            tk.Button(subsubventana, text = "DATOS", command = Datos, bg = "yellow2", fg = "gray20", font = ("Comic Sans MS", 10, "bold")).pack(pady = 10)
+            
+            
+            
+        
+        except ValueError as x:
+            messagebox.showerror("ALARMA", x)
+            return
+        
+        
+    
+    #Inicio ventana
+    subsubventana = tk.Toplevel(Subventana_2)
+    subsubventana.title("INGRESO DE USUARIOS")
+    subsubventana.grab_set()
+    subsubventana.transient(Subventana_2)
+    subsubventana.configure(bg = "gray20")
+   
+    #Titulo
+    tk.Label(subsubventana, text = "SALIDA DE HUESPEDES", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 20)).pack(pady = 10, padx = 10) 
+    
+    #Subtitulo
+    tk.Label(subsubventana, text = "Porfavor ingrese la fecha de salida", fg = "yellow2", bg = "gray20", font = ("Comic Sans MS", 15)).pack(pady = 10, padx = 10)
+    
+    #fecha
+    fecha_salida = DateEntry(subsubventana, state = "readonly", justify = "center", width = 13, background = "yellow2", foreground = "gray20", font = ("Comic Sans MS", 10, "bold")) 
+    fecha_salida.pack(pady = 10) 
+    
+    #boton verificacion
+    tk.Button(subsubventana, text = "Verificacion", command = segundo_punto, bg = "yellow2", fg = "gray20", font = ("Comic Sans MS", 10, "bold")).pack(pady = 10)
+ 
+# ==============================================================================
+# 4. Arranque    
+# ==============================================================================      
+
+Ventana_Inicial()
+
